@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bangalore Home Price Prediction</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f7fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #uiPredictedPrice {
+            text-align: center;
+            color: #e74c3c;
+            font-size: 18px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#predictButton").click(function() {
+                var sqft = parseFloat($("#uiSqft").val());
+                var bhk = parseInt($("#uiBHK").val());
+                var bath = parseInt($("#uiBath").val());
+                var location = $("#uiLocations").val();
+
+                // Validation
+                $(".error").hide();
+                if (isNaN(sqft) || sqft <= 0) {
+                    $("#sqftError").show();
+                    return;
+                }
+                if (isNaN(bhk) || bhk <= 0) {
+                    $("#bhkError").show();
+                    return;
+                }
+                if (isNaN(bath) || bath <= 0) {
+                    $("#bathError").show();
+                    return;
+                }
+
+                $.ajax({
+                    url: 'http://127.0.0.1:5000/predict_home_price',
+                    type: 'POST',
+                    data: {
+                        total_sqft: sqft,
+                        location: location,
+                        bhk: bhk,
+                        bath: bath
+                    },
+                    success: function(response) {
+                        $("#uiPredictedPrice").text(response.estimated_price + " Lakhs");
+                    },
+                    error: function() {
+                        $("#uiPredictedPrice").text("Error: Check server connection.");
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Bangalore Home Price Prediction</h1>
+    <div class="form-group">
+        <label for="uiLocations">Location:</label>
+        <select id="uiLocations">
+            <option value="1st block jayanagar">1st Block Jayanagar</option>
+            <option value="1st phase jp nagar">1st Phase JP Nagar</option>
+            <option value="electronic city">Electronic City</option>
+            <option value="whitefield">Whitefield</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="uiSqft">Total Square Feet:</label>
+        <input type="number" id="uiSqft" min="1" step="0.01" required>
+        <span id="sqftError" class="error">Please enter a valid square footage.</span>
+    </div>
+    <div class="form-group">
+        <label for="uiBHK">BHK:</label>
+        <input type="number" id="uiBHK" min="1" required>
+        <span id="bhkError" class="error">Please enter a valid BHK value.</span>
+    </div>
+    <div class="form-group">
+        <label for="uiBath">Bathrooms:</label>
+        <input type="number" id="uiBath" min="1" required>
+        <span id="bathError" class="error">Please enter a valid bathroom count.</span>
+    </div>
+    <button type="button" id="predictButton">Predict Price</button>
+    <div id="uiPredictedPrice"></div>
+</body>
+</html>
